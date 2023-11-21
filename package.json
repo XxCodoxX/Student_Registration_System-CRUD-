@@ -1,0 +1,26 @@
+{
+  "name": "student_registration_system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "install-server": "npm install --prefix server",
+    "install-client": "npm install --prefix client",
+    "install": "npm run install-server && npm run install-client",
+    "server":"npm run watch --prefix server",
+    "client":"npm run dev --prefix client",
+    "watch":"npm run client & npm run server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XxCodoxX/Student_Registration_System-CRUD-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/XxCodoxX/Student_Registration_System-CRUD-/issues"
+  },
+  "homepage": "https://github.com/XxCodoxX/Student_Registration_System-CRUD-#readme"
+}
