@@ -58,4 +58,24 @@ async function httpUserLogin(req, res) {
   }
 }
 
-module.exports = { httpUserLogin };
+function httpNewAccessToken(req,res) {
+    const refreshToken = req.body.RefreshToken;
+
+  if (!refreshToken) return res.status(401).json({type: "Error", message: 'Refresh token is required' });
+
+  jwt.verify(refreshToken, process.env.JWT_AUTH_REFRESH_TOKEN, (err, user) => {
+    if (err) {
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({type:"Error", message: 'Token expired' });
+        } else {
+          return res.status(403).json({type:"Error", message: 'Invalid token' });
+        }
+      }
+
+    const accessToken = generateAccessToken(user.userName);
+    res.status(200).json({ AccessToken:accessToken });
+  });
+    
+}
+
+module.exports = { httpUserLogin, httpNewAccessToken };
