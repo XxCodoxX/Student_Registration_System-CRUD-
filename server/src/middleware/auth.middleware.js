@@ -3,7 +3,7 @@ require("dotenv").config();
 
 function authMiddleware(req, res, next) {
     const bearer = req.headers['authorization'];
-    let token = bearer.split(" ")[1];
+    let token = bearer?.split(" ")[1];
 
   if (!token) return res.status(401).json({type:"Error", message: "Access denied" });
   
