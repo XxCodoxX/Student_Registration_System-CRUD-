@@ -28,7 +28,7 @@ const WelcomeModal = ({ data, setData }) => {
           },
         }}
       >
-        <Fade in={open}>
+        <Fade in={data.state}>
           <Box sx={style}>
             <Typography id="transition-modal-title" variant="h6" component="h2">
               {data.message}

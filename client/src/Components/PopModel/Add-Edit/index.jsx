@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Buttons from "../../Buttons";
+import { useSelector } from "react-redux";
 
 const IOSSwitch = styled((props) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
@@ -79,6 +80,7 @@ const PopAddEditModel = ({ data, setData, addNewFunction, editFunction }) => {
     phoneNo: "",
     active: false,
   });
+  const userData = useSelector(({ main }) => main.USER_DATA);
   const handleChange = (event) => {
     setFormValues((pre) => ({
       ...pre,
@@ -101,7 +103,7 @@ const PopAddEditModel = ({ data, setData, addNewFunction, editFunction }) => {
       });
     }
   }, []);
-  
+
   return (
     <>
       <Dialog
@@ -182,6 +184,7 @@ const PopAddEditModel = ({ data, setData, addNewFunction, editFunction }) => {
                   id="role"
                   label="Role"
                   name="role"
+                  disabled={userData.role == "viewer" ? true:false}
                   value={fromValues.role}
                   onChange={handleChange}
                 >

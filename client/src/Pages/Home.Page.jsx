@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -9,13 +10,13 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
 import Heder from "../Components/Heder";
 import Buttons from "../Components/Buttons";
 import PopAddEditModel from "../Components/PopModel/Add-Edit";
 import PopCommonModel from "../Components/PopModel/CommonModal";
 import { useNavigate } from "react-router-dom";
-import { isAuthenticated } from "../Service/auth.service";
 import { useSelector } from "react-redux";
 import {
   addNewUsersApi,
@@ -72,19 +73,34 @@ const Home = () => {
     }));
   };
 
+  const profileClick = () => {
+    setModelAddEditState((pre) => ({
+      ...pre,
+      state: true,
+      editable: true,
+      editUser: userData || null,
+    }));
+  };
+
   const deleteClick = (dataPack) => {
     setModelDeleteState((pre) => ({
       ...pre,
       state: true,
       userId: dataPack.id || null,
-      username: dataPack.full_name || "",
+      username: dataPack?.full_name || "",
     }));
   };
 
   const getAllUsers = async () => {
     try {
       const { data } = await getAllUsersApi();
-      setAllUsers(data.data);
+      
+      if (userData.role == "viewer") {
+        const filerData = data.data.filter((data)=> data.active !=0)
+        setAllUsers(filerData);
+      }else{
+        setAllUsers(data.data);
+      }
     } catch (error) {
       if (error.response == undefined) {
         setAlertObject({
@@ -255,31 +271,33 @@ const Home = () => {
       }
     }
   };
-
+  
   useEffect(() => {
     if (!localStorage.getItem("TOKEN")) {
       navigateTo("/");
-    } else {
-      setWelcomeObject({
-        state: true,
-        message: `Welcome User ${userData.full_name}`,
-      });
-      const welcomeTimer = setTimeout(() => {
-        setWelcomeObject({
-          state: false,
-          message: `Welcome User ${userData.full_name}`,
-        });
-        console.log("done");
-      }, 2000);
-      const getAllUsersTimer = setTimeout(() => {
-        getAllUsers();
-      }, 10);
-      return () => {
-        clearTimeout(getAllUsersTimer);
-        clearTimeout(welcomeTimer);
-      };
     }
   }, []);
+
+  useEffect(() => {
+    setWelcomeObject({
+      state: true,
+      message: `Welcome User ${userData?.full_name}`,
+    });
+    const welcomeTimer = setTimeout(() => {
+      setWelcomeObject({
+        state: false,
+        message: "",
+      });
+    }, 2000);
+    const getAllUsersTimer = setTimeout(() => {
+      getAllUsers();
+    }, 10);
+    return () => {
+      clearTimeout(getAllUsersTimer);
+      clearTimeout(welcomeTimer);
+    };
+  }, [userData]);
+
 
   return (
     <>
@@ -293,7 +311,7 @@ const Home = () => {
           backgroundColor: "#464a54",
         }}
       >
-        <Heder />
+        <Heder profileClickProp={profileClick} />
         <Box
           component={Paper}
           sx={{ width: "90vw", height: "85vh", marginTop: 5, padding: 2 }}
@@ -329,6 +347,7 @@ const Home = () => {
                     <TableCell>Email</TableCell>
                     <TableCell>Age</TableCell>
                     <TableCell>Phone No</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell>Edit</TableCell>
                     <TableCell>Delete</TableCell>
                   </TableRow>
@@ -346,6 +365,7 @@ const Home = () => {
                           <TableCell>{data.email}</TableCell>
                           <TableCell>{data.age}</TableCell>
                           <TableCell>{data.phoneNo}</TableCell>
+                          <TableCell>{data.active == 1 ? (<CheckIcon/>):(<ClearIcon/>)}</TableCell>
                           <TableCell>
                             <Buttons
                               ButtonName={"Edit"}
@@ -353,6 +373,9 @@ const Home = () => {
                               ButtonFunction={() => {
                                 editClick(data);
                               }}
+                              ButtonDisabled={
+                                userData?.role === "admin" ? false : true
+                              }
                             />
                           </TableCell>
                           <TableCell>
@@ -362,6 +385,9 @@ const Home = () => {
                               ButtonFunction={() => {
                                 deleteClick(data);
                               }}
+                              ButtonDisabled={
+                                userData?.role === "admin" ? false : true
+                              }
                             />
                           </TableCell>
                         </TableRow>

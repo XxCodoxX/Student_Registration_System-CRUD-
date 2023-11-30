@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetMainStor } from "../../Store/Main/action";
 
-const Heder = () => {
+const Heder = ({profileClickProp}) => {
   const navigateTo = useNavigate();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -61,6 +61,11 @@ const Heder = () => {
     navigateTo("/")
   }
 
+  const profileClick = () => {
+    profileClickProp()
+    setAnchorEl(null);
+  };
+
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: "#fff" }}>
@@ -98,7 +103,7 @@ const Heder = () => {
               open={Boolean(anchorEl)}
               onClose={handleClose}
             >
-              <MenuItem onClick={handleClose}>Profile</MenuItem>
+              <MenuItem onClick={profileClick}>Profile</MenuItem>
               <MenuItem onClick={logoutHandle}>LogOut</MenuItem>
             </Menu>
           </div>

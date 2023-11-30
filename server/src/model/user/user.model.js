@@ -4,7 +4,7 @@ const pool = require("../../config/mysql.config");
 async function getAllUserWithoutPassword() {
   return new Promise((resolve, reject) => {
     pool.query(
-      "SELECT id,userName,full_name,email,role,age,phoneNo,active FROM users WHERE active = 1",
+      "SELECT id,userName,full_name,email,role,age,phoneNo,active FROM users ",
       (error, results, fields) => {
         if (error) {
           reject({ statues: "error", error: error });

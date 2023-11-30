@@ -110,7 +110,8 @@ async function httpGetLogUser(req,res) {
           email: resolve.results[0].email,
           role: resolve.results[0].role,
           age: resolve.results[0].age,
-          phoneNo: resolve.results[0].phoneNo
+          phoneNo: resolve.results[0].phoneNo,
+          active:resolve.results[0].active
         }
         return res
         .status(200)
