@@ -66,7 +66,3 @@ This App Contain simple CRUD task with login System using JWT authentication and
     User Name = 'test 01'
     Password = '123'
     ```
-
-```
-
-```
