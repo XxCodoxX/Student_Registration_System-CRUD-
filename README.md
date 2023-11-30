@@ -47,10 +47,6 @@ This App Contain simple CRUD task with login System using JWT authentication and
    ```
 
 7. Import given `users` Table to the MYSQL
-   ```sh
-   User Name = 'test 01'
-   Password = '123'
-   ```
 8. Run the server
 
    ```sh
@@ -60,7 +56,17 @@ This App Contain simple CRUD task with login System using JWT authentication and
 
 9. run the client
 
-   ```
+   ```sh
    cd ./client/
    npm run dev
    ```
+
+10. User credentials is
+    ```sh
+    User Name = 'test 01'
+    Password = '123'
+    ```
+
+```
+
+```
