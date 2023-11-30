@@ -9,8 +9,7 @@ import {
 import React from "react";
 import Buttons from "../../Buttons";
 
-const PopDeleteModel = ({ data, setData }) => {
-  console.log(data);
+const PopCommonModel = ({ data, setData, buttonAction }) => {
   return (
     <>
       <Dialog
@@ -21,10 +20,10 @@ const PopDeleteModel = ({ data, setData }) => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"User Delete"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{data?.title}</DialogTitle>
         <DialogContent sx={{ width: 500 }}>
           <DialogContentText id="alert-dialog-description">
-            {`Do you want delete "${data.userName}"`}
+            {`${data?.description} "${data?.username}"`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -34,11 +33,17 @@ const PopDeleteModel = ({ data, setData }) => {
               setData({ ...data, state: false, userId: null });
             }}
           />
-          <Buttons ButtonName={"Delete"} ButtonColor={"#D70040"} />
+          <Buttons ButtonName={data?.actionbtnName} ButtonColor={"#D70040"} ButtonFunction={buttonAction} paramsForFunction={data.userId}/>
         </DialogActions>
       </Dialog>
     </>
   );
 };
 
-export default PopDeleteModel;
+PopCommonModel.defaultProps = {
+  data: {},
+  setData:()=>{},
+  buttonAction:()=>{},
+};
+
+export default PopCommonModel;

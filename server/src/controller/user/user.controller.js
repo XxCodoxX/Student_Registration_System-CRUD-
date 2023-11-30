@@ -20,9 +20,9 @@ async function httpGetAllUser(req, res) {
 async function httpAddNewUser(req, res) {
   const body = req.body
 
-  if(!body.userName || !body.password || !body.full_name || !body.email || !body.role || !body.age || !body.phoneNo || !body.active){
+  if(!body.username || !body.password || !body.full_name || !body.email || !body.role || !body.age || !body.phoneNo || !body.active){
     res
-      .status(401)
+      .status(400)
       .send(sendResponse("Error","Payload Is Incorrect",[]));
   }
 
@@ -46,9 +46,10 @@ async function httpUpdateUser(req, res) {
   const body = req.body.data
   const id = req.body.userId
 
-  if(!id || !body.userName || !body.password || !body.full_name || !body.email || !body.role || !body.age || !body.phoneNo || !body.active){
-    res
-      .status(401)
+
+  if(!id || !body.username || !body.full_name || !body.email || !body.role || !body.age || !body.phoneNo || !body.active){
+    return res
+      .status(400)
       .send(sendResponse("Error","Payload Is Incorrect",[]));
   }
 

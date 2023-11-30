@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Avatar,
   Box,
@@ -9,25 +9,75 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import login_back from "../assets/Login_Back.jpg";
+import { isAuthenticated, login, setToken } from "../Service/auth.service";
+import { useDispatch } from "react-redux";
+import { getLogUserData } from "../Store/Main/action";
+import { useNavigate } from "react-router-dom";
+import ToasterMessage from "../Components/Alart";
 
 const Login = () => {
-  const credentials = useRef({
-    email: "",
+  const [credentials, setCredentials] = useState({
+    username: "",
     password: "",
   });
+  const [alertObject, setAlertObject] = useState({
+    state: false,
+    type: "",
+    message: "",
+  });
+  const dispatch = useDispatch();
+  const navigateTo = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigateTo("/home");
+    } 
+  }, []);
+
+  const handleChange = (event) => {
+    setCredentials({
+      ...credentials,
+      [event.target.name]: event.target.value,
+    });
+  };
 
   const handleLogin = (event) => {
     event.preventDefault();
-    if (
-      credentials.current.email === "" ||
-      credentials.current.password === ""
-    ) {
-      console.log("Please fill all the fields");
+
+    if (credentials.username === "" || credentials.password === "") {
+      setAlertObject({
+        state: true,
+        type: "warning",
+        message: "Please fill in all the fields",
+      })
       return;
     }
 
-    console.log(`Login Done userName is ${credentials.current.email} and password is ${credentials.current.password}`);
-    
+    // console.log(
+    //   `Login Done userName is ${credentials.username} and password is ${credentials.password}`
+    // );
+
+    login(credentials)
+      .then((res) => {
+        setToken(JSON.stringify(res.data));
+        dispatch(getLogUserData());
+        navigateTo("/home");
+      })
+      .catch((error) => {
+        if(error.response == undefined){
+          setAlertObject({
+            state: true,
+            type: "error",
+            message: error.message,
+          })
+        }else{
+          setAlertObject({
+            state: true,
+            type: "error",
+            message: error.response.data.message,
+          })
+        }
+      });
   };
 
   return (
@@ -81,12 +131,11 @@ const Login = () => {
               margin="normal"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="User Name"
+              name="username"
               autoFocus
-              onChange={(e)=> credentials.current.email = e.target.value}
+              onChange={handleChange}
             />
             <TextField
               margin="normal"
@@ -97,7 +146,7 @@ const Login = () => {
               type="password"
               id="password"
               autoComplete="current-password"
-              onChange={(e)=> credentials.current.password = e.target.value}
+              onChange={handleChange}
             />
             <Button
               type="submit"
@@ -110,6 +159,9 @@ const Login = () => {
           </Box>
         </Paper>
       </Box>
+      {alertObject.state && (
+        <ToasterMessage data={alertObject} setData={setAlertObject} />
+      )}
     </>
   );
 };

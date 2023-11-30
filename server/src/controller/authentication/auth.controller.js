@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { getUserByUserName } = require("../../model/user/user.model");
+const { sendResponse } = require("../../util/helper.util");
 
 function generateAccessToken(user) {
   return jwt.sign({ userName: user }, process.env.JWT_AUTH_TOKEN, {
@@ -49,14 +50,14 @@ async function httpUserLogin(req, res) {
       } else {
         return res
           .status(401)
-          .send({ type: "Error", massage: "User Doesn't Exist" });
+          .send({ type: "Error", message: "User Doesn't Exist" });
       }
     },
     (reject) => {
       console.log(reject.error);
       return res
         .status(500)
-        .send({ type: "Error", massage: "Something Went Wrong" });
+        .send({ type: "Error", message: "Something Went Wrong" });
     }
   );
 }
@@ -87,4 +88,42 @@ function httpNewAccessToken(req, res) {
   });
 }
 
-module.exports = { httpUserLogin, httpNewAccessToken };
+
+async function httpGetLogUser(req,res) {
+  const bearer = req.headers['authorization'];
+  let token = bearer?.split(" ")[1];
+
+  jwt.verify(token, process.env.JWT_AUTH_TOKEN, async (err, user) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({type:"Error", message: 'Token expired' });
+      } else {
+        return res.status(403).json({type:"Error", message: 'Invalid token' });
+      }
+    }
+    await getUserByUserName(user?.userName).then(
+      (resolve) => {
+        const value = {
+          id: resolve.results[0].id,
+          userName: resolve.results[0].userName,
+          full_name: resolve.results[0].full_name,
+          email: resolve.results[0].email,
+          role: resolve.results[0].role,
+          age: resolve.results[0].age,
+          phoneNo: resolve.results[0].phoneNo
+        }
+        return res
+        .status(200)
+        .send(sendResponse("Success","",value));
+      },
+      (reject) => {
+        console.log(reject.error);
+        return res
+        .status(500)
+        .send({ type: "Error", message: "Something Went Wrong" });
+      }
+    )
+  })
+}
+
+module.exports = { httpUserLogin, httpNewAccessToken, httpGetLogUser };

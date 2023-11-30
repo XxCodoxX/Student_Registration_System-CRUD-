@@ -9,25 +9,52 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Heder from "../Components/Heder";
 import Buttons from "../Components/Buttons";
 import PopAddEditModel from "../Components/PopModel/Add-Edit";
-import PopDeleteModel from "../Components/PopModel/Delete";
+import PopCommonModel from "../Components/PopModel/CommonModal";
+import { useNavigate } from "react-router-dom";
+import { isAuthenticated } from "../Service/auth.service";
+import { useSelector } from "react-redux";
+import {
+  addNewUsersApi,
+  deleteUsersApi,
+  editUsersApi,
+  getAllUsersApi,
+} from "../api/UserApi";
+import ToasterMessage from "../Components/Alart";
+import WelcomeModal from "../Components/PopModel/WelcomeModal";
 
 const Home = () => {
   const [modelAddEditState, setModelAddEditState] = useState({
     state: false,
     editable: false,
-    userId: null,
+    editUser: null,
   });
   const [modelDeleteState, setModelDeleteState] = useState({
     state: false,
     userId: null,
-    userName: "",
+    username: "",
+    title: "User Delete",
+    description: "Do you want delete",
+    actionbtnName: "Delete",
+  });
+  const [alertObject, setAlertObject] = useState({
+    state: false,
+    type: "",
+    message: "",
+  });
+  const [welcomeObject, setWelcomeObject] = useState({
+    state: true,
+    message: "",
   });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [allUsers, setAllUsers] = useState([]);
+  const userData = useSelector(({ main }) => main.USER_DATA);
+
+  const navigateTo = useNavigate();
 
   const addNewClick = () => {
     setModelAddEditState((pre) => ({
@@ -41,7 +68,7 @@ const Home = () => {
       ...pre,
       state: true,
       editable: true,
-      userId: dataPack.id || null,
+      editUser: dataPack || null,
     }));
   };
 
@@ -50,89 +77,209 @@ const Home = () => {
       ...pre,
       state: true,
       userId: dataPack.id || null,
-      userName: dataPack.name || "",
+      username: dataPack.full_name || "",
     }));
   };
 
-  const dummyData = [
-    {
-      id: 1,
-      name: "test1",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 2,
-      name: "test2",
-      email: "test2@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 3,
-      name: "test3",
-      email: "test3@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 4,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 5,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 6,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 7,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 8,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 9,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 10,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-    {
-      id: 11,
-      name: "test4",
-      email: "test1@test.com",
-      age: 25,
-      phoneNo: "0789635896",
-    },
-  ];
+  const getAllUsers = async () => {
+    try {
+      const { data } = await getAllUsersApi();
+      setAllUsers(data.data);
+    } catch (error) {
+      if (error.response == undefined) {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.message,
+        });
+      } else {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.response.data.message,
+        });
+      }
+    }
+  };
+
+  const addNewFunction = async (newData) => {
+    const { username, password, full_name, email, role, age, phoneNo, active } =
+      newData;
+
+    if (!username || !password || !role || !active) {
+      setAlertObject({
+        state: true,
+        type: "warning",
+        message: "need to fill Required felids",
+      });
+      return;
+    }
+
+    const body = {
+      username: username,
+      password: password,
+      full_name: full_name,
+      email: email,
+      role: role,
+      age: age,
+      phoneNo: phoneNo,
+      active: active === true ? 1 : 0,
+    };
+
+    try {
+      const response = await addNewUsersApi(body);
+      setModelAddEditState((pre) => ({
+        ...pre,
+        state: false,
+      }));
+      getAllUsers();
+      setAlertObject({
+        state: true,
+        type: "success",
+        message: response.data.message,
+      });
+    } catch (error) {
+      if (error.response == undefined) {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.message,
+        });
+      } else {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.response.data.message,
+        });
+      }
+    }
+  };
+
+  const editFunction = async (newData) => {
+    const {
+      userId,
+      username,
+      password,
+      full_name,
+      email,
+      role,
+      age,
+      phoneNo,
+      active,
+    } = newData;
+
+    if (!username || !role || !active || !userId) {
+      setAlertObject({
+        state: true,
+        type: "warning",
+        message: "need to fill Required felids",
+      });
+      return;
+    }
+
+    const body = {
+      userId: userId,
+      data: {
+        username: username,
+        password: password,
+        full_name: full_name,
+        email: email,
+        role: role,
+        age: age,
+        phoneNo: phoneNo,
+        active: active === true ? 1 : 0,
+      },
+    };
+
+    try {
+      const response = await editUsersApi(body);
+      setModelAddEditState((pre) => ({
+        ...pre,
+        state: false,
+        editable: false,
+        editUser: null,
+      }));
+      getAllUsers();
+      setAlertObject({
+        state: true,
+        type: "success",
+        message: response.data.message,
+      });
+    } catch (error) {
+      if (error.response == undefined) {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.message,
+        });
+      } else {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.response.data.message,
+        });
+      }
+    }
+  };
+
+  const deleteFunction = async (id) => {
+    try {
+      const response = await deleteUsersApi(id);
+      setModelDeleteState({
+        state: false,
+        userId: null,
+        username: "",
+        title: "User Delete",
+        description: "Do you want delete",
+        actionbtnName: "Delete",
+      });
+      getAllUsers();
+      setAlertObject({
+        state: true,
+        type: "success",
+        message: response.data.message,
+      });
+    } catch (error) {
+      if (error.response == undefined) {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.message,
+        });
+      } else {
+        setAlertObject({
+          state: true,
+          type: "error",
+          message: error.response.data.message,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!localStorage.getItem("TOKEN")) {
+      navigateTo("/");
+    } else {
+      setWelcomeObject({
+        state: true,
+        message: `Welcome User ${userData.full_name}`,
+      });
+      const welcomeTimer = setTimeout(() => {
+        setWelcomeObject({
+          state: false,
+          message: `Welcome User ${userData.full_name}`,
+        });
+        console.log("done");
+      }, 2000);
+      const getAllUsersTimer = setTimeout(() => {
+        getAllUsers();
+      }, 10);
+      return () => {
+        clearTimeout(getAllUsersTimer);
+        clearTimeout(welcomeTimer);
+      };
+    }
+  }, []);
 
   return (
     <>
@@ -160,7 +307,11 @@ const Home = () => {
                 justifyContent: "flex-end",
               }}
             >
-              <Buttons ButtonName={"Add New"} ButtonFunction={addNewClick} />
+              <Buttons
+                ButtonName={"Add New"}
+                ButtonFunction={addNewClick}
+                ButtonDisabled={userData?.role === "admin" ? false : true}
+              />
             </Box>
             <TableContainer
               sx={{
@@ -174,7 +325,7 @@ const Home = () => {
               >
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
+                    <TableCell>Full Name</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Age</TableCell>
                     <TableCell>Phone No</TableCell>
@@ -183,15 +334,15 @@ const Home = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {dummyData.length != 0 ? (
-                    dummyData
+                  {allUsers.length != 0 ? (
+                    allUsers
                       .slice(
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage
                       )
                       .map((data, index) => (
                         <TableRow key={index}>
-                          <TableCell>{data.name}</TableCell>
+                          <TableCell>{data.full_name}</TableCell>
                           <TableCell>{data.email}</TableCell>
                           <TableCell>{data.age}</TableCell>
                           <TableCell>{data.phoneNo}</TableCell>
@@ -199,18 +350,17 @@ const Home = () => {
                             <Buttons
                               ButtonName={"Edit"}
                               ButtonColor={"#50C878"}
-                              ButtonFunction={editClick}
-                              paramsForFunction={{ id: data.id }}
+                              ButtonFunction={() => {
+                                editClick(data);
+                              }}
                             />
                           </TableCell>
                           <TableCell>
                             <Buttons
                               ButtonName={"Delete"}
                               ButtonColor={"#D70040"}
-                              ButtonFunction={deleteClick}
-                              paramsForFunction={{
-                                id: data.id,
-                                name: data.name,
+                              ButtonFunction={() => {
+                                deleteClick(data);
                               }}
                             />
                           </TableCell>
@@ -218,10 +368,9 @@ const Home = () => {
                       ))
                   ) : (
                     <TableRow>
-                      {" "}
-                      <TableCell sx={{ textAlign: "center" }} colSpan={4}>
+                      <TableCell sx={{ textAlign: "center" }} colSpan={6}>
                         No Data
-                      </TableCell>{" "}
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -230,7 +379,7 @@ const Home = () => {
             <TablePagination
               rowsPerPageOptions={[10, 25, 100]}
               component="div"
-              count={dummyData.length}
+              count={allUsers.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={(e, n) => setPage(n)}
@@ -245,10 +394,22 @@ const Home = () => {
         <PopAddEditModel
           data={modelAddEditState}
           setData={setModelAddEditState}
+          addNewFunction={addNewFunction}
+          editFunction={editFunction}
         />
       )}
       {modelDeleteState.state && (
-        <PopDeleteModel data={modelDeleteState} setData={setModelDeleteState} />
+        <PopCommonModel
+          data={modelDeleteState}
+          setData={setModelDeleteState}
+          buttonAction={deleteFunction}
+        />
+      )}
+      {alertObject.state && (
+        <ToasterMessage data={alertObject} setData={setAlertObject} />
+      )}
+      {welcomeObject.state && (
+        <WelcomeModal data={welcomeObject} setData={setWelcomeObject} />
       )}
     </>
   );

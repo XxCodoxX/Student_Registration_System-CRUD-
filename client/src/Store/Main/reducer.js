@@ -2,7 +2,6 @@ import * as Actions from "./action";
 
 const initialState = {
   USER_DATA: null,
-  TOKEN:null
 };
 
 const mainReducer = (state = initialState, action) => {
@@ -13,14 +12,8 @@ const mainReducer = (state = initialState, action) => {
         USER_DATA: action?.payload,
       };
     }
-    case Actions.ADD_TOKEN: {
-      return {
-        ...state,
-        TOKEN: action?.payload,
-      };
-    }
     case Actions.RESET_MAIN_STORE: {
-      return state;
+      return initialState;
     }
     default: {
       return state;
