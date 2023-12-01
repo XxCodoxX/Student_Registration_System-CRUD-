@@ -52,20 +52,38 @@ async function addNewUser(body) {
           Number(phoneNo),
           Boolean(Number(active))
         );
+
         pool.query(
-          "INSERT INTO users (userName, password, full_name, email, role, age, phoneNo, active) VALUES (?)",
-          [value],
+          "SELECT * FROM users WHERE userName = ?",
+          [username],
           (error, results) => {
             if (error) {
               reject({ statues: "error", error: error });
             } else {
-              if (results.affectedRows == 1) {
-                resolve({ statues: "success", results: "New User Added" });
+              if (results.length != 0) {
+                reject({ statues: "error", error: "user exists" });
               } else {
-                reject({
-                  statues: "error",
-                  error: "SQL_Execute - Something Went Wrong",
-                });
+                pool.query(
+                  "INSERT INTO users (userName, password, full_name, email, role, age, phoneNo, active) VALUES (?)",
+                  [value],
+                  (error, results) => {
+                    if (error) {
+                      reject({ statues: "error", error: error });
+                    } else {
+                      if (results.affectedRows == 1) {
+                        resolve({
+                          statues: "success",
+                          results: "New User Added",
+                        });
+                      } else {
+                        reject({
+                          statues: "error",
+                          error: "SQL_Execute - Something Went Wrong",
+                        });
+                      }
+                    }
+                  }
+                );
               }
             }
           }
@@ -105,7 +123,7 @@ async function updateUser(id, body) {
             } else {
               reject({
                 statues: "error",
-                error: "SQL_Execute - Something Went Wrong",    
+                error: "SQL_Execute - Something Went Wrong",
               });
             }
           }
@@ -139,7 +157,7 @@ async function updateUser(id, body) {
                 } else {
                   reject({
                     statues: "error",
-                    error: "SQL_Execute - Something Went Wrong",   
+                    error: "SQL_Execute - Something Went Wrong",
                   });
                 }
               }

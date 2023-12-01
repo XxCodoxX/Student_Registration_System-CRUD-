@@ -21,7 +21,7 @@ async function httpAddNewUser(req, res) {
   const body = req.body
 
   if(!body.username || !body.password || !body.full_name || !body.email || !body.role || !body.age || !body.phoneNo || !body.active){
-    res
+    return res
       .status(400)
       .send(sendResponse("Error","Payload Is Incorrect",[]));
   }
@@ -34,9 +34,15 @@ async function httpAddNewUser(req, res) {
     },
     (reject) => {
       console.log(reject.error);
-      return res
-        .status(500)
-        .send(sendResponse("Error","Something Went Wrong",[]));
+      if(reject.error == "user exists"){
+        return res
+        .status(400)
+        .send(sendResponse("Error","User Already Exists",[]));
+      }else{
+        return res
+          .status(500)
+          .send(sendResponse("Error","Something Went Wrong",[]));
+      }
     }
   )
 
